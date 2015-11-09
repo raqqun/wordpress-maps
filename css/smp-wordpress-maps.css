@@ -1,0 +1,13 @@
+._smp_wp_maps_candidature_status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+}
+
+._smp_wp_maps_candidature_status.on {
+    background-color: green;
+}
+
+._smp_wp_maps_candidature_status.off {
+    background-color: red;
+}
