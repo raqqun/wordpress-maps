@@ -22,6 +22,7 @@
 if ( file_exists( dirname( __FILE__ ) . '/library/CMB2/init.php' ) ) {
     require_once 'library/CMB2/init.php';
     require_once 'library/smp_wp_maps_cmb2.php';
+    new smp_wp_maps_cmb2();
 } else {
     add_action( 'admin_notices', 'cmb2_example_plugin_missing_cmb2' );
 }
@@ -43,7 +44,7 @@ class smp_wordpress_maps {
     private $map_element_id;
 
     function __construct() {
-        new smp_wp_maps_cmb2();
+
         $this->access_token = get_option('mapbox_api_token');
         $this->mapbox_map_id = get_option('mapbox_map_id');
         $this->map_element_id = get_option('map_element_id');
@@ -386,7 +387,7 @@ class smp_wordpress_maps {
 
             $role = get_role($the_role);
 
-            if ( 'smp_map_manager' ) {
+            if ( $the_role == 'smp_map_manager' ) {
                 $role->add_cap( 'read' );
             }
 
@@ -414,7 +415,7 @@ class smp_wordpress_maps {
 
             $role = get_role($the_role);
 
-            if ( 'smp_map_manager' ) {
+            if ( $the_role == 'smp_map_manager' ) {
                 $role->remove_cap( 'read' );
             }
 
