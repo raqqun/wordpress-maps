@@ -75,5 +75,20 @@ class smp_wp_maps_cmb2 {
             'id'    =>  $this->meta_prefix . 'place_link',
             'type'  =>  'text_url'
         ) );
+
+
+        $cmb->add_field( array(
+            'name'  =>  'Facebook',
+            'desc'  =>  'Lien facebook',
+            'id'    =>  $this->meta_prefix . 'facebook_link',
+            'type'  =>  'text_url'
+        ) );
+
+        $cmb->add_field( array(
+            'name'  =>  'Twitter',
+            'desc'  =>  'Lien Twitter',
+            'id'    =>  $this->meta_prefix . 'twitter_link',
+            'type'  =>  'text_url'
+        ) );
     }
 }

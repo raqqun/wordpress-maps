@@ -11,3 +11,15 @@
 ._smp_wp_maps_candidature_status.off {
     background-color: red;
 }
+
+#_smp_wp_maps_title {
+    font-size: 20px;
+    padding: 0;
+    font-weight: bold;
+}
+
+#_smp_wp_maps_partner span,
+#_smp_wp_maps_calendar span,
+#_smp_wp_maps_status span {
+    font-weight: bold;
+}

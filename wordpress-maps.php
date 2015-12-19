@@ -229,7 +229,7 @@ class smp_wordpress_maps {
                         <label for="">Map ShortCode to place in page or post content.</label>
                     </th>
                     <td>
-                        <p><?php echo "[smp-maps width='100%' height='600px']" ?></p>
+                        <p><?php echo "[smp-maps width='100%' height='600px' cat='']" ?></p>
                         <p class="description">You can change width and height attributes to your own needs.</p>
                     </td>
                 </tr>
@@ -256,10 +256,30 @@ class smp_wordpress_maps {
     public function smp_wordpress_maps_shortcode( $atts ) {
         $map_atts = shortcode_atts( array(
             'width'     =>  '100%',
-            'height'    =>  '600px'
+            'height'    =>  '600px',
+            'cat'       =>  'all'
         ), $atts );
 
-        $places = get_posts( array( 'post_type' => 'places', 'nopaging' => true ) );
+        if ($map_atts['cat'] != 'all') {
+            $tax_query = array(
+                array(
+                    'taxonomy' => 'place_category',
+                    'field'    => 'slug',
+                    'terms'    => $map_atts['cat']
+                )
+            );
+        }
+        else {
+            $tax_query = array();
+        }
+
+        $places = get_posts(
+            array(
+                'post_type' => 'places',
+                'nopaging' => true,
+                'tax_query' => $tax_query
+            )
+        );
         $places_lat_lng = array();
         $places_content = array();
 
@@ -468,26 +488,35 @@ function change_place_content( $place_content, $place_id ) {
 
     $html = "
         <div>
-            <p>{$place_content['title']}</p>
-            <p>{$place_content['thumbnail']}</p>
-            <p>{$place_content['excerpt']}</p>
-            <p>{$place_content['content']}</p>
-            <p>Calendrier : ".
-                get_post_meta($place_id, '_smp_wp_maps_calendar', true) ."</p>
-            <p>Partenaire/porteur du projet : ".
+            <p id='_smp_wp_maps_title'>{$place_content['title']}</p>
+            <p id='_smp_wp_maps_thumb'>{$place_content['thumbnail']}</p>
+            <p id='_smp_wp_maps_excerpt'>{$place_content['excerpt']}</p>
+            <p id='_smp_wp_maps_content'>{$place_content['content']}</p>
+            <p id='_smp_wp_maps_partner'><span>Partenaire/porteur du projet :</span> ".
                 get_post_meta($place_id, '_smp_wp_maps_partnership', true) ."</p>
-            <p>Statut des candidatures : ".
+            <p id='_smp_wp_maps_calendar'><span>Calendrier : </span><br>".
+                nl2br(get_post_meta($place_id, '_smp_wp_maps_calendar', true)) ."</p>
+            <p id='_smp_wp_maps_status'><span>Statut des candidatures : </span>".
                 (get_post_meta($place_id, '_smp_wp_maps_candidature_status', true) == 'on'
                     ? '<span class="_smp_wp_maps_candidature_status on"></span>'
                     : '<span class="_smp_wp_maps_candidature_status off"></span>'
                 )
-            ."</p>
+            ."</p>". (get_post_meta($place_id, '_smp_wp_maps_candidature_status', true) == 'on' ? "
             <p><a target='_blank' href='".
-                get_post_meta($place_id, '_smp_wp_maps_candidature_link', true) ."'>Lien candidatures</a></p>
+                get_post_meta($place_id, '_smp_wp_maps_candidature_link', true) ."'>Lien candidatures</a></p>" : "") . "
             <p><a target='_blank' href='".
                 get_post_meta($place_id, '_smp_wp_maps_place_link', true) ."'>Site web de la formation</a></p>
+            <div class='social__container'>
+                <div class='social__item'>
+                    <a target='_blank' href='". get_post_meta($place_id, '_smp_wp_maps_twitter_link', true) ."' class='social__icon--twitter'><i class='icon--twitter'></i></a>
+                </div>
+                <div class='social__item'>
+                    <a target='_blank' href='". get_post_meta($place_id, '_smp_wp_maps_facebook_link', true) ."' class='social__icon--facebook'><i class='icon--facebook'></i></a>
+                </div>
+            </div>
         </div>
     ";
 
     return $html;
 }
+
