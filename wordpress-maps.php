@@ -4,7 +4,7 @@
  * Plugin Name: Wordpress Maps
  * Plugin URI:  http://prod.simplon.co/
  * Description: This plugin provides the ability to pin point custom post types content as maps descriptions
- * Version:     0.1
+ * Version:     0.2
  * Author:      Alexandros Nikiforidis
  * Author URI:  http://raqqun0101.net
  *
@@ -229,7 +229,7 @@ class smp_wordpress_maps {
                         <label for="">Map ShortCode to place in page or post content.</label>
                     </th>
                     <td>
-                        <p><?php echo "[smp-maps width='100%' height='600px' cat='']" ?></p>
+                        <p><?php echo "[smp-maps map='one' map_id='simplonprod.o2j20p28' map_lat='48.8589' map_lon='2.3469' map_zoom='12' width='100%' height='600px' cat='all']" ?></p>
                         <p class="description">You can change width and height attributes to your own needs.</p>
                     </td>
                 </tr>
@@ -255,6 +255,11 @@ class smp_wordpress_maps {
 
     public function smp_wordpress_maps_shortcode( $atts ) {
         $map_atts = shortcode_atts( array(
+            'map'       =>  'first',
+            'map_id'    =>  'simplonprod.o2j20p28',
+            'map_lat'   =>  '0',
+            'map_lon'   =>  '0',
+            'map_zoom'  =>  '0',
             'width'     =>  '100%',
             'height'    =>  '600px',
             'cat'       =>  'all'
@@ -273,7 +278,8 @@ class smp_wordpress_maps {
             $tax_query = array();
         }
 
-        $places = get_posts(
+
+        $places = new WP_Query(
             array(
                 'post_type' => 'places',
                 'nopaging' => true,
@@ -283,40 +289,54 @@ class smp_wordpress_maps {
         $places_lat_lng = array();
         $places_content = array();
 
-        foreach ( $places as $place ) {
-            global $post;
-            $post = $place;
-            setup_postdata( $post );
-            $place_lat_lng = array(
-                get_post_meta( get_the_ID(), 'map_box_geolocation_lat', true ),
-                get_post_meta( get_the_ID(), 'map_box_geolocation_lng', true ),
-                get_post_meta( get_the_ID(), '_smp_wp_maps_color', true )
-            );
-            $place_content_map = array(
-                'title'     =>  get_the_title(),
-                'thumbnail' =>  get_the_post_thumbnail(),
-                'content'   =>  get_the_content(),
-                'excerpt'   =>  get_the_excerpt(),
-                'metas'     =>  array (
+        if ( $places->have_posts() ) {
+            while ( $places->have_posts() ) {
+                $places->the_post();
+                $place_lat_lng = array(
+                    get_post_meta( get_the_ID(), 'map_box_geolocation_lat', true ),
+                    get_post_meta( get_the_ID(), 'map_box_geolocation_lng', true ),
+                    get_post_meta( get_the_ID(), '_smp_wp_maps_color', true )
+                );
+                $place_content_map = array(
+                    'title'     =>  get_the_title(),
+                    'thumbnail' =>  get_the_post_thumbnail(),
+                    'content'   =>  get_the_content(),
+                    'excerpt'   =>  get_the_excerpt(),
+                    'metas'     =>  array (
 
-                )
-            );
-            wp_reset_postdata();
-            $place_content = apply_filters( 'smp_map_places_content', $place_content_map, $place->ID );
-            array_push($places_lat_lng, $place_lat_lng);
-            array_push($places_content, $place_content);
+                    )
+                );
+
+                $place_content = apply_filters( 'smp_map_places_content', $place_content_map, get_the_ID() );
+
+                array_push($places_lat_lng, $place_lat_lng);
+                array_push($places_content, $place_content);
+            }
+
         }
+        wp_reset_postdata();
+
 
         return
-            "<div id='" . $this->map_element_id . "' style='position:relative; width:" . $map_atts['width'] . "; height:" . $map_atts['height'] . ";'></div>
+            "<div id='" . $map_atts['map'] . "' style='position:relative; width:" . $map_atts['width'] . "; height:" . $map_atts['height'] . ";'></div>
             <script>
-                L.mapbox.accessToken = '" . $this->access_token . "';
-                var map = L.mapbox.map(
-                    'smp-maps',
-                    'simplonprod.o2j20p28'
-                );
+                if (typeof(L.mapbox.accessToken) == 'undefined') {
+                    L.mapbox.accessToken = '" . $this->access_token . "';
+                }
+                var wordpress_maps =
+                    L.mapbox.map(
+                        '" . $map_atts['map'] . "',
+                        '" . $map_atts['map_id'] . "',
+                        {zoomControl: false}
+                    ).setView([". $map_atts['map_lat'] .", " . $map_atts['map_lon'] . "], " . $map_atts['map_zoom'] . ");
+                wordpress_maps.dragging.disable();
+                wordpress_maps.touchZoom.disable();
+                wordpress_maps.doubleClickZoom.disable();
+                wordpress_maps.scrollWheelZoom.disable();
+                wordpress_maps.keyboard.disable();
                 var placesLatLng = " . json_encode($places_lat_lng) . ";
                 var placesContent = " . json_encode($places_content) . ";
+                init_map_markers(wordpress_maps);
             </script>
             ";
     }
@@ -370,8 +390,7 @@ class smp_wordpress_maps {
                 'smp_wordpress_maps_js',
                 plugins_url( '/js/smp-wordpress-maps.js', __FILE__ ),
                 array('mapboxjs'),
-                '0.1',
-                true
+                '0.1'
             );
             wp_enqueue_style(
                 'mapboxcss',
