@@ -19,8 +19,8 @@
  */
 
 
-if ( file_exists( dirname( __FILE__ ) . '/library/CMB2/init.php' ) ) {
-    require_once 'library/CMB2/init.php';
+if ( file_exists( dirname( __FILE__ ) . '/library/cmb2/init.php' ) ) {
+    require_once 'library/cmb2/init.php';
     require_once 'library/smp_wp_maps_cmb2.php';
     new smp_wp_maps_cmb2();
 } else {
