@@ -29,7 +29,7 @@ function init_map_markers(wordpress_maps) {
             layer.bindPopup(layer.feature.properties.description, {
                 'closeButton': false,
                 'keepInView' : true,
-                'maxHeight'  : 400
+                'maxHeight'  : wordpress_maps._size.y/1.5
             });
         });
 
